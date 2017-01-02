@@ -1,3 +1,6 @@
+declare interface ResourceRequest { }
+declare interface VRFrameData { }
+
 /**
  * @name pc
  * @namespace
@@ -15,6 +18,16 @@
 // #endif
  */
 declare module pc {
+
+    interface AudioManager { }
+    interface ResolutionMode { }
+
+    interface LightComponentSystem { }
+    interface ProgramLibrary { }
+    interface MOUSEBUTTON { }
+    interface ResourceHandler { }
+    interface CLEARFLAG { }
+
    /**
     * @name pc.Node
     * @class A animation node has a name and contains an array of keyframes.
@@ -847,7 +860,7 @@ declare module pc {
     * @name pc.unpack()
     * @description Copy a set of common PlayCanvas functions/classes/namespaces into the global namespace
     */
-   function unpack()(): void;
+   //todo function unpack()(): void;
 
    /**
     * @function
@@ -858,7 +871,7 @@ declare module pc {
     * @param {Object} arr The array to convert
     * @return {Array} An array
     */
-   function makeArray(arr: Object): Array;
+   function makeArray(arr: Object): Array<Object>;
 
    /**
     * @private
@@ -1776,7 +1789,7 @@ declare module pc {
 
        /**
         * @function
-        * @name pc.Application#renderLine^2
+        * @name pc.Application#renderLine_2
         * @description Draw a line which blends between two colors
         * @param {pc.Vec3} start The start of the line
         * @param {pc.Vec3} end The end of the line
@@ -1789,11 +1802,11 @@ declare module pc {
         * var endColor = new pc.Color(1,0,0);
         * app.renderLine(start, end, startColor, endColor);
         */
-       renderLine^2(start: pc.Vec3, end: pc.Vec3, startColor: pc.Color, endColor: pc.Color): void;
+       renderLine_2(start: pc.Vec3, end: pc.Vec3, startColor: pc.Color, endColor: pc.Color): void;
 
        /**
         * @function
-        * @name pc.Application#renderLine^3
+        * @name pc.Application#renderLine_3
         * @description Draw a line of one color with specified line type
         * @param {pc.Vec3} start The start of the line
         * @param {pc.Vec3} end The end of the line
@@ -1805,11 +1818,11 @@ declare module pc {
         * var color = new pc.Color(1,1,1);
         * app.renderLine(start, end, color, pc.LINEBATCH_OVERLAY);
         */
-       renderLine^3(start: pc.Vec3, end: pc.Vec3, color: pc.Color, lineType: Number): void;
+       renderLine_3(start: pc.Vec3, end: pc.Vec3, color: pc.Color, lineType: Number): void;
 
        /**
         * @function
-        * @name pc.Application#renderLine^4
+        * @name pc.Application#renderLine_4
         * @description Draw a line which blends between two colors with specified line type
         * @param {pc.Vec3} start The start of the line
         * @param {pc.Vec3} end The end of the line
@@ -1823,7 +1836,7 @@ declare module pc {
         * var endColor = new pc.Color(1,0,0);
         * app.renderLine(start, end, startColor, endColor, pc.LINEBATCH_OVERLAY);
         */
-       renderLine^4(start: pc.Vec3, end: pc.Vec3, startColor: pc.Color, endColor: pc.Color, lineType: Number): void;
+       renderLine_4(start: pc.Vec3, end: pc.Vec3, startColor: pc.Color, endColor: pc.Color, lineType: Number): void;
 
        /**
         * @function
@@ -2102,7 +2115,7 @@ declare module pc {
         * @description Set the volume for the entire AudioSource system. All sources will have their volume multiplied by this value
         * @param {Number} value The value to set the volume to. Valid from 0.0 - 1.0
         */
-       setVolume()(value: Number): void;
+       setVolume(value: Number): void;
 
    }
 
@@ -2325,7 +2338,7 @@ declare module pc {
         *     }
         * });
         */
-       enterVr(display?: pc.VrDisplay, callback: (() => any)): void;
+       enterVr(display?: pc.VrDisplay, callback?: (() => any)): void;
 
        /**
         * @function
@@ -3387,7 +3400,7 @@ declare module pc {
 
        /**
         * @function
-        * @name pc.RigidBodyComponent#applyForce^2
+        * @name pc.RigidBodyComponent#applyForce_2
         * @description Apply an force to the body at a point. By default, the force is applied at the origin of the
         * body. However, the force can be applied at an offset this point by specifying a world space vector from
         * the body's origin to the point of application.
@@ -3413,7 +3426,7 @@ declare module pc {
         * // Apply the force
         * this.entity.rigidbody.applyForce(force, relativePos);
         */
-       applyForce^2(force: pc.Vec3, relativePoint?: pc.Vec3): void;
+       applyForce_2(force: pc.Vec3, relativePoint?: pc.Vec3): void;
 
        /**
         * @function
@@ -3438,11 +3451,11 @@ declare module pc {
 
        /**
         * @function
-        * @name pc.RigidBodyComponent#applyTorque^2
+        * @name pc.RigidBodyComponent#applyTorque_2
         * @description Apply torque (rotational force) to the body.
         * @param {pc.Vec3} force The torque to apply, in world space.
         */
-       applyTorque^2(force: pc.Vec3): void;
+       applyTorque_2(force: pc.Vec3): void;
 
        /**
         * @function
@@ -3456,12 +3469,12 @@ declare module pc {
 
        /**
         * @function
-        * @name pc.RigidBodyComponent#applyImpulse^2
+        * @name pc.RigidBodyComponent#applyImpulse_2
         * @description Apply an impulse (instantaneous change of velocity) to the body at a point.
         * @param {pc.Vec3} impulse The impulse to apply, in world space.
         * @param {pc.Vec3} [relativePoint] The point at which to apply the impulse, in local space (relative to the entity).
         */
-       applyImpulse^2(impulse: pc.Vec3, relativePoint?: pc.Vec3): void;
+       applyImpulse_2(impulse: pc.Vec3, relativePoint?: pc.Vec3): void;
 
        /**
         * @function
@@ -3478,11 +3491,11 @@ declare module pc {
 
        /**
         * @function
-        * @name pc.RigidBodyComponent#applyTorqueImpulse^2
+        * @name pc.RigidBodyComponent#applyTorqueImpulse_2
         * @description Apply a torque impulse (rotational force applied instantaneously) to the body.
         * @param {pc.Vec3} torqueImpulse The torque impulse to apply, in world space.
         */
-       applyTorqueImpulse^2(torqueImpulse: pc.Vec3): void;
+       applyTorqueImpulse_2(torqueImpulse: pc.Vec3): void;
 
        /**
         * @function
@@ -3539,7 +3552,7 @@ declare module pc {
 
        /**
         * @function
-        * @name pc.RigidBodyComponent#teleport^3
+        * @name pc.RigidBodyComponent#teleport_3
         * @description Teleport an entity to a new position and/or orientation
         * @param {Number} x The new position x value
         * @param {Number} y The new position y value
@@ -3548,7 +3561,7 @@ declare module pc {
         * @param {Number} [y] The new y angle value
         * @param {Number} [z] The new z angle value
         */
-       teleport^3(x?: Number, y?: Number, z?: Number): void;
+       teleport_3(x?: Number, y?: Number, z?: Number): void;
 
        /**
         * @function
@@ -3561,12 +3574,12 @@ declare module pc {
 
        /**
         * @function
-        * @name pc.RigidBodyComponent#teleport^2
+        * @name pc.RigidBodyComponent#teleport_2
         * @description Teleport an entity to a new position and/or orientation
         * @param {pc.Vec3} position The new position
         * @param {pc.Quat} [rotation] The new rotation
         */
-       teleport^2(position: pc.Vec3, rotation?: pc.Quat): void;
+       teleport_2(position: pc.Vec3, rotation?: pc.Quat): void;
 
        /**
         * @private
@@ -3739,11 +3752,11 @@ declare module pc {
 
        /**
         * @function
-        * @name pc.RigidBodyComponentSystem#setGravity^2
+        * @name pc.RigidBodyComponentSystem#setGravity_2
         * @description Set the gravity vector for the 3D physics world
         * @param {pc.Vec3} gravity The gravity vector to use for the 3D physics world.
         */
-       setGravity^2(gravity: pc.Vec3): void;
+       setGravity_2(gravity: pc.Vec3): void;
 
        /**
         * @function
@@ -4309,7 +4322,7 @@ declare module pc {
         * @name pc.ComponentSystem#store
         * @description The store where all {@link pc.ComponentData} objects are kept
         */
-       private store: Array;
+       private store: Array<Object>;
 
        /**
         * @private
@@ -6656,7 +6669,7 @@ declare module pc {
         * @param {HTMLCanvasElement|HTMLImageElement|HTMLVideoElement|Array} source A canvas, image or video element,
         * or an array of 6 canvas, image or video elements.
         */
-       setSource(source: (HTMLCanvasElement|HTMLImageElement|HTMLVideoElement|Array)): void;
+       setSource(source: (HTMLCanvasElement|HTMLImageElement|HTMLVideoElement|Array<Object>)): void;
 
        /**
         * @function
@@ -8340,7 +8353,7 @@ declare module pc {
         * @param {Array} [curveKeys] An array of arrays of keys (pairs of numbers with
         * the time first and value second).
         */
-       constructor(curveKeys?: Array);
+       constructor(curveKeys?: Array<Object>);
 
        /**
         * @function
@@ -8362,7 +8375,7 @@ declare module pc {
         * to return the result.
         * @return {Array} The interpolated curve values at the specified time
         */
-       value(time: Number, result?: Array): Array;
+       value(time: Number, result?: Array<Object>): Array<Object>;
 
        /**
         * @function
@@ -8922,7 +8935,7 @@ declare module pc {
         * @description Sets matrix data from an array.
         * @param {Array} Source array. Must have 16 values.
         */
-       set(Source: Array): void;
+       set(Source: Array<Object>): void;
 
        /**
         * @function
@@ -10887,7 +10900,7 @@ declare module pc {
         *     console.log(response);
         * });
         */
-       get(url: String, options?: { headers: Object, async: Boolean, cache: Object, withCredentials: Boolean, responseType: String, postdata: (Document|Object) }, callback: (() => any)): void;
+       get(url: String, options: { headers: Object, async: Boolean, cache: Object, withCredentials: Boolean, responseType: String, postdata: (Document|Object) }, callback: (() => any)): void;
 
        /**
         * @function
@@ -10906,7 +10919,7 @@ declare module pc {
         * the postdata is JSON stringified, otherwise by default the data is sent as form-urlencoded
         * @param {Function} callback The callback used when the response has returned. Passed (err, data) where data is the response (format depends on response type, text, Object, ArrayBuffer, XML) and err is the error code.
         */
-       post(url: String, options?: { headers: Object, async: Boolean, cache: Object, withCredentials: Boolean, responseType: String }, data: Object, callback: (() => any)): void;
+       post(url: String, options: { headers: Object, async: Boolean, cache: Object, withCredentials: Boolean, responseType: String }, data: Object, callback: (() => any)): void;
 
        /**
         * @function
@@ -10925,7 +10938,7 @@ declare module pc {
         * the postdata is JSON stringified, otherwise by default the data is sent as form-urlencoded
         * @param {Function} callback The callback used when the response has returned. Passed (err, data) where data is the response (format depends on response type, text, Object, ArrayBuffer, XML) and err is the error code.
         */
-       put(url: String, options?: { headers: Object, async: Boolean, cache: Object, withCredentials: Boolean, responseType: String }, data: (Document|Object), callback: (() => any)): void;
+       put(url: String, options: { headers: Object, async: Boolean, cache: Object, withCredentials: Boolean, responseType: String }, data: (Document|Object), callback: (() => any)): void;
 
        /**
         * @function
@@ -10944,7 +10957,7 @@ declare module pc {
         * @param {Object} [options.cache] If false, then add a timestamp to the request to prevent caching
         * @param {Function} callback The callback used when the response has returned. Passed (err, data) where data is the response (format depends on response type, text, Object, ArrayBuffer, XML) and err is the error code.
         */
-       del(url: Object, options?: { headers: Object, async: Boolean, cache: Object, withCredentials: Boolean, responseType: String, postdata: (Document|Object) }, callback: (() => any)): void;
+       del(url: Object, options: { headers: Object, async: Boolean, cache: Object, withCredentials: Boolean, responseType: String, postdata: (Document|Object) }, callback: (() => any)): void;
 
        /**
         * @function
@@ -10964,7 +10977,7 @@ declare module pc {
         * @param {Object} [options.cache] If false, then add a timestamp to the request to prevent caching
         * @param {Function} callback The callback used when the response has retured. Passed (err, data) where data is the response (format depends on response type, text, Object, ArrayBuffer, XML) and err is the error code.
         */
-       request(method: String, url: String, options?: { headers: Object, async: Boolean, cache: Object, withCredentials: Boolean, responseType: String, postdata: (Document|Object) }, callback: (() => any)): void;
+       request(method: String, url: String, options: { headers: Object, async: Boolean, cache: Object, withCredentials: Boolean, responseType: String, postdata: (Document|Object) }, callback: (() => any)): void;
 
    }
 
@@ -11307,7 +11320,7 @@ declare module pc {
         * @name pc.Camera#clearColor
         * @description Camera's clear color.
         */
-       private clearColor: Array;
+       private clearColor: Array<Object>;
 
        /**
         * @private
@@ -11752,7 +11765,7 @@ declare module pc {
 
        /**
         * @function
-        * @name pc.GraphNode#setLocalEulerAngles^2
+        * @name pc.GraphNode#setLocalEulerAngles_2
         * @description Sets the local space rotation of the specified graph node using euler angles.
         * Eulers are interpreted in XYZ order. Eulers must be specified in degrees.
         * @param {pc.Vec3} e vector containing euler angles in XYZ order.
@@ -11760,7 +11773,7 @@ declare module pc {
         * var angles = new pc.Vec3(0, 90, 0);
         * this.entity.setLocalEulerAngles(angles); // Set rotation of 90 degress around y-axis.
         */
-       setLocalEulerAngles^2(e: pc.Vec3): void;
+       setLocalEulerAngles_2(e: pc.Vec3): void;
 
        /**
         * @function
@@ -11777,14 +11790,14 @@ declare module pc {
 
        /**
         * @function
-        * @name pc.GraphNode#setLocalPosition^2
+        * @name pc.GraphNode#setLocalPosition_2
         * @description Sets the local space position of the specified graph node.
         * @param {pc.Vec3} pos position vector of graph node in local space.
         * @example
         * var pos = new pc.Vec3(0, 10, 0);
         * this.entity.setLocalPosition(pos)
         */
-       setLocalPosition^2(pos: pc.Vec3): void;
+       setLocalPosition_2(pos: pc.Vec3): void;
 
        /**
         * @function
@@ -11800,7 +11813,7 @@ declare module pc {
 
        /**
         * @function
-        * @name pc.GraphNode#setLocalRotation^2
+        * @name pc.GraphNode#setLocalRotation_2
         * @description Sets the local space rotation of the specified graph node.
         * @param {Number} x X component of local space quaternion rotation.
         * @param {Number} y Y component of local space quaternion rotation.
@@ -11810,7 +11823,7 @@ declare module pc {
         * // Set to the identity quaternion
         * this.entity.setLocalRotation(0, 0, 0, 1);
         */
-       setLocalRotation^2(x: Number, y: Number, z: Number, w: Number): void;
+       setLocalRotation_2(x: Number, y: Number, z: Number, w: Number): void;
 
        /**
         * @function
@@ -11824,14 +11837,14 @@ declare module pc {
 
        /**
         * @function
-        * @name pc.GraphNode#setLocalScale^2
+        * @name pc.GraphNode#setLocalScale_2
         * @description Sets the local space scale factor of the specified graph node.
         * @param {pc.Vec3} scale xyz-scale of graph node in local space.
         * @example
         * var scale = new pc.Vec3(10, 10, 10);
         * this.entity.setLocalScale(scale);
         */
-       setLocalScale^2(scale: pc.Vec3): void;
+       setLocalScale_2(scale: pc.Vec3): void;
 
        /**
         * @function
@@ -11859,14 +11872,14 @@ declare module pc {
 
        /**
         * @function
-        * @name pc.GraphNode#setPosition^2
+        * @name pc.GraphNode#setPosition_2
         * @description Sets the world space position of the specified graph node.
         * @param {pc.Vec3} position world space position (xyz) of graph node.
         * @example
         * var position = new pc.Vec3(0, 10, 0);
         * this.entity.setPosition(position);
         */
-       setPosition^2(position: pc.Vec3): void;
+       setPosition_2(position: pc.Vec3): void;
 
        /**
         * @function
@@ -11882,7 +11895,7 @@ declare module pc {
 
        /**
         * @function
-        * @name pc.GraphNode#setRotation^2
+        * @name pc.GraphNode#setRotation_2
         * @description Sets the world space rotation of the specified graph node using
         * the 4 components of a quaternion.
         * @param {Number} x X component of world space quaternion rotation.
@@ -11892,7 +11905,7 @@ declare module pc {
         * @example
         * this.entity.setRotation(0, 0, 0, 1);
         */
-       setRotation^2(x: Number, y: Number, z: Number, w: Number): void;
+       setRotation_2(x: Number, y: Number, z: Number, w: Number): void;
 
        /**
         * @function
@@ -11908,7 +11921,7 @@ declare module pc {
 
        /**
         * @function
-        * @name pc.GraphNode#setEulerAngles^2
+        * @name pc.GraphNode#setEulerAngles_2
         * @description Sets the world space orientation of the specified graph node
         * using Euler angles. Angles are specified in degress in XYZ order.
         * @param {pc.Vec3} angles Euler angles in degrees (XYZ order).
@@ -11916,7 +11929,7 @@ declare module pc {
         * var angles = new pc.Vec3(0, 90, 0);
         * this.entity.setEulerAngles(angles);
         */
-       setEulerAngles^2(angles: pc.Vec3): void;
+       setEulerAngles_2(angles: pc.Vec3): void;
 
        /**
         * @function
@@ -12030,7 +12043,7 @@ declare module pc {
 
        /**
         * @function
-        * @name pc.GraphNode#lookAt^2
+        * @name pc.GraphNode#lookAt_2
         * @description Reorients the graph node so that the negative z axis points towards the target.
         * @param {Number} tx X-component of the world space coordinate to 'look at'.
         * @param {Number} ty Y-component of the world space coordinate to 'look at'.
@@ -12047,7 +12060,7 @@ declare module pc {
         * // Look at 10, 10, 10 with an inverted up value
         * this.entity.lookAt(10, 10, 10, 0, -1, 0);
         */
-       lookAt^2(tx: Number, ty: Number, tz: Number, ux?: Number, uy?: Number, uz?: Number): void;
+       lookAt_2(tx: Number, ty: Number, tz: Number, ux?: Number, uy?: Number, uz?: Number): void;
 
        /**
         * @function
@@ -12069,14 +12082,14 @@ declare module pc {
 
        /**
         * @function
-        * @name pc.GraphNode#translate^2
+        * @name pc.GraphNode#translate_2
         * @description Translates the graph node in world space by the specified translation vector.
         * @param {pc.Vec3} translation The world space translation vector to apply.
         * @example
         * var t = new pc.Vec3(10, 0, 0);
         * this.entity.translate(t);
         */
-       translate^2(translation: pc.Vec3): void;
+       translate_2(translation: pc.Vec3): void;
 
        /**
         * @function
@@ -12092,14 +12105,14 @@ declare module pc {
 
        /**
         * @function
-        * @name pc.GraphNode#translateLocal^2
+        * @name pc.GraphNode#translateLocal_2
         * @description Translates the graph node in local space by the specified translation vector.
         * @param {pc.Vec3} translation The local space translation vector to apply.
         * @example
         * var t = new pc.Vec3(10, 0, 0);
         * this.entity.translateLocal(t);
         */
-       translateLocal^2(translation: pc.Vec3): void;
+       translateLocal_2(translation: pc.Vec3): void;
 
        /**
         * @function
@@ -12115,7 +12128,7 @@ declare module pc {
 
        /**
         * @function
-        * @name pc.GraphNode#rotate^2
+        * @name pc.GraphNode#rotate_2
         * @description Rotates the graph node in world space by the specified Euler angles.
         * Eulers are specified in degrees in XYZ order.
         * @param {pc.Vec3} rot World space rotation (xyz) of graph node.
@@ -12123,7 +12136,7 @@ declare module pc {
         * var r = new pc.Vec3(0, 90, 0);
         * this.entity.rotate(r);
         */
-       rotate^2(rot: pc.Vec3): void;
+       rotate_2(rot: pc.Vec3): void;
 
        /**
         * @function
@@ -12140,7 +12153,7 @@ declare module pc {
 
        /**
         * @function
-        * @name pc.GraphNode#rotateLocal^2
+        * @name pc.GraphNode#rotateLocal_2
         * @description Rotates the graph node in local space by the specified Euler angles.
         * Eulers are specified in degrees in XYZ order.
         * @param {pc.Vec3} rot Local space rotation (xyz) of graph node.
@@ -12148,7 +12161,7 @@ declare module pc {
         * var r = new pc.Vec3(0, 90, 0);
         * this.entity.rotateLocal(r);
         */
-       rotateLocal^2(rot: pc.Vec3): void;
+       rotateLocal_2(rot: pc.Vec3): void;
 
        /**
         * @function
@@ -12333,7 +12346,7 @@ declare module pc {
         * @param {Number|Array|pc.Texture} data The value for the specified parameter.
         * @author Will Eastcott
         */
-       setParameter(name: String, data: (Number|Array|pc.Texture)): void;
+       setParameter(name: String, data: (Number|Array<Object>|pc.Texture)): void;
 
        /**
         * @function
@@ -13712,7 +13725,7 @@ declare module pc {
         *     ]
         * });
         */
-       add(name: String, args: { type: String, default: ?, title: String, description: String, placeholder: (String|String[]), array: Boolean, size: Number, min: Number, max: Number, precision: Number, assetType: String, curves: String[], color: String, enum: Object[] }): void;
+       add(name: String, args: { type: String, default: any, title: String, description: String, placeholder: (String|String[]), array: Boolean, size: Number, min: Number, max: Number, precision: Number, assetType: String, curves: String[], color: String, enum: Object[] }): void;
 
        /**
         * @function
@@ -14574,8 +14587,8 @@ declare function postUpdate(): void;
  * Called when the enabled flag of the entity or one of its
  * parents changes
  */
-declare function Called when the enabled flag of the entity or one of its
-parents changes(): void;
+//declare function Called when the enabled flag of the entity or one of its
+//parents changes(): void;
 
 /**
  * @name ScriptType
