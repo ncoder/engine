@@ -1460,6 +1460,9 @@ declare module pc {
 
    }
 
+
+   interface ApplicationOptions { keyboard: pc.Keyboard, mouse: pc.Mouse, touch: pc.TouchDevice, gamepads: pc.GamePads, scriptPrefix: String, assetPrefix: String, graphicsDeviceOptions: Object }
+
    /**
     * @name pc.Application
     * @class Default application which performs general setup code and initiates the main game loop.
@@ -1501,7 +1504,7 @@ declare module pc {
         * // Start game loop
         * app.start()
         */
-       constructor(canvas: Element, options: { keyboard: pc.Keyboard, mouse: pc.Mouse, touch: pc.TouchDevice, gamepads: pc.GamePads, scriptPrefix: String, assetPrefix: String, graphicsDeviceOptions: Object });
+       constructor(canvas: Element, options: ApplicationOptions);
 
        /**
         * @name pc.Application#scene
@@ -1859,40 +1862,35 @@ declare module pc {
     * @name pc.FILLMODE_NONE
     * @description When resizing the window the size of the canvas will not change.
     */
-   enum FILLMODE_NONE {
-   }
+   var FILLMODE_NONE: string
 
    /**
     * @enum pc.FILLMODE
     * @name pc.FILLMODE_FILL_WINDOW
     * @description When resizing the window the size of the canvas will change to fill the window exactly.
     */
-   enum FILLMODE_FILL_WINDOW {
-   }
+   var FILLMODE_FILL_WINDOW : string
 
    /**
     * @enum pc.FILLMODE
     * @name pc.FILLMODE_KEEP_ASPECT
     * @description When resizing the window the size of the canvas will change to fill the window as best it can, while maintaining the same aspect ratio.
     */
-   enum FILLMODE_KEEP_ASPECT {
-   }
+   var FILLMODE_KEEP_ASPECT: string
 
    /**
     * @enum pc.RESOLUTION
     * @name pc.RESOLUTION_AUTO
     * @description When the canvas is resized the resolution of the canvas will change to match the size of the canvas.
     */
-   enum RESOLUTION_AUTO {
-   }
+   var RESOLUTION_AUTO: string
 
    /**
     * @enum pc.RESOLUTION
     * @name pc.RESOLUTION_FIXED
     * @description When the canvas is resized the resolution of the canvas will remain at the same value and the output will just be scaled to fit the canvas.
     */
-   enum RESOLUTION_FIXED {
-   }
+   var RESOLUTION_FIXED: string
 
    /**
     * @component Animation
