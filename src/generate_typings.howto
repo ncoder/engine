@@ -1,0 +1,3 @@
+jsdoc -t /usr/lib/node_modules/tsd-jsdoc -r . -d tsd-jsdoc
+
+note: I had to nullcheck a few things to get it to not crash. can we do better next time and submit a patch?
