@@ -35,6 +35,12 @@ pc.extend(pc, function () {
         new pc.Mat4().setScale(0.5, 0.5, 0.5)
     );
 
+    var rgbaDepthClearOptions = {
+        color: [ 254.0 / 255, 254.0 / 255, 254.0 / 255, 254.0 / 255 ],
+        depth: 1.0,
+        flags: pc.CLEARFLAG_COLOR | pc.CLEARFLAG_DEPTH
+    };
+
     var opChanId = {r:1, g:2, b:3, a:4};
     var numShadowModes = 4;
 
@@ -1227,6 +1233,8 @@ pc.extend(pc, function () {
                     tempy = meshPos[1] - camPos[1];
                     tempz = meshPos[2] - camPos[2];
                     drawCall.zdist = tempx*camFwd[0] + tempy*camFwd[1] + tempz*camFwd[2];
+                } else if (drawCall.material.alphaTest || drawCall.material.alphaToCoverage) {
+                    drawCall.zdist = Number.MAX_VALUE;
                 } else if (drawCall.zdist !== undefined) {
                     delete drawCall.zdist;
                 }
@@ -1418,9 +1426,12 @@ pc.extend(pc, function () {
                 this.modelMatrixId.setValue(modelMatrix.data);
 
                 if (normal) {
-                    normalMatrix = meshInstance.normalMatrix;
-                    modelMatrix.invertTo3x3(normalMatrix); // TODO: cache
-                    normalMatrix.transpose();
+                    normalMatrix = meshInstance.node.normalMatrix;
+                    if (meshInstance.node.dirtyNormal) {
+                        modelMatrix.invertTo3x3(normalMatrix);
+                        normalMatrix.transpose();
+                        meshInstance.node.dirtyNormal = false;
+                    }
                     this.normalMatrixId.setValue(normalMatrix.data);
                 }
 
@@ -1550,7 +1561,7 @@ pc.extend(pc, function () {
                     } else if (type === pc.LIGHTTYPE_SPOT) {
 
                         // don't update invisible light
-                        if (camera.frustumCulling) {
+                        if (camera.frustumCulling && light.shadowUpdateMode===pc.SHADOWUPDATE_REALTIME) {
                             light.getBoundingSphere(tempSphere);
                             if (!camera.frustum.containsSphere(tempSphere)) continue;
                         }
@@ -1567,7 +1578,7 @@ pc.extend(pc, function () {
                     } else if (type === pc.LIGHTTYPE_POINT) {
 
                         // don't update invisible light
-                        if (camera.frustumCulling) {
+                        if (camera.frustumCulling && light.shadowUpdateMode===pc.SHADOWUPDATE_REALTIME) {
                             light.getBoundingSphere(tempSphere);
                             if (!camera.frustum.containsSphere(tempSphere)) continue;
                         }
@@ -1753,7 +1764,7 @@ pc.extend(pc, function () {
                 }
             }
             // #ifdef PROFILER
-            this._shadowMapTime = pc.now() - shadowMapStartTime;
+            this._shadowMapTime += pc.now() - shadowMapStartTime;
             // #endif
         },
 
@@ -1797,8 +1808,13 @@ pc.extend(pc, function () {
                 var i;
                 var shadowType;
                 var rect = camera._rect;
-                var width = Math.floor(rect.width * device.width);
-                var height = Math.floor(rect.height * device.height);
+
+                var target = camera.renderTarget;
+                var width = target? target.width : device.width;
+                var height = target? target.height : device.height;
+                width = Math.floor(rect.width * width);
+                height = Math.floor(rect.height * height);
+
                 var meshInstance, mesh, material, style, depthShader;
 
                 var vrDisplay = camera.vrDisplay;
@@ -1833,7 +1849,9 @@ pc.extend(pc, function () {
 
                 // Set depth RT
                 var oldTarget = camera.renderTarget;
+                var oldClear = camera.getClearOptions();
                 camera.renderTarget = camera._depthTarget;
+                camera.setClearOptions(rgbaDepthClearOptions);
                 this.setCamera(camera);
 
                 // Render
@@ -1870,14 +1888,14 @@ pc.extend(pc, function () {
                         this.viewProjId.setValue(viewProjMatL.data);
                         this.viewPosId.setValue(viewPosL.data);
                         i += this.drawInstance(device, meshInstance, mesh, style, true);
-                        this._forwardDrawCalls++;
+                        this._depthDrawCalls++;
 
                         // Right
                         device.setViewport(halfWidth, 0, halfWidth, device.height);
                         this.viewProjId.setValue(viewProjMatR.data);
                         this.viewPosId.setValue(viewPosR.data);
                         i += this.drawInstance2(device, meshInstance, mesh, style);
-                        this._forwardDrawCalls++;
+                        this._depthDrawCalls++;
                     } else {
                         i += this.drawInstance(device, meshInstance, mesh, style);
                         this._depthDrawCalls++;
@@ -1886,6 +1904,7 @@ pc.extend(pc, function () {
 
                 // Set old rt
                 camera.renderTarget = oldTarget;
+                camera.setClearOptions(oldClear);
             } else {
                 if (camera._depthTarget) {
                     camera._depthTarget.destroy();
@@ -1894,7 +1913,7 @@ pc.extend(pc, function () {
             }
 
             // #ifdef PROFILER
-            this._depthMapTime = pc.now() - startTime;
+            this._depthMapTime += pc.now() - startTime;
             // #endif
         },
 
@@ -1957,6 +1976,14 @@ pc.extend(pc, function () {
                     // We have a command
                     drawCall.command();
                 } else {
+
+                    // #ifdef PROFILER
+                    // If pc.skipRenderCamera is set to current camera,
+                    // then it will stop rendering draw calls after pc.skipRenderAfter
+                    // number of draw calls rendered, usefull for profiling order of rendering
+                    if (camera===pc.skipRenderCamera && i >= pc.skipRenderAfter) continue;
+                    // #endif
+
                     // We have a mesh instance
                     mesh = drawCall.mesh;
                     material = drawCall.material;
@@ -1988,7 +2015,15 @@ pc.extend(pc, function () {
                             }
                             drawCall._shaderDefs = objDefs;
                         }
+
+                        // #ifdef DEBUG
+                        if (!device.setShader(drawCall._shader[pc.SHADER_FORWARD])) {
+                            console.error('Error in material "' + material.name + '" with flags ' + objDefs);
+                            drawCall.material = pc.Scene.defaultMaterial;
+                        }
+                        // #else
                         device.setShader(drawCall._shader[pc.SHADER_FORWARD]);
+                        // #endif
 
                         // Uniforms I: material
                         parameters = material.parameters;
@@ -2008,39 +2043,47 @@ pc.extend(pc, function () {
                         this.alphaTestId.setValue(material.alphaTest);
 
                         device.setBlending(material.blend);
-                        device.setBlendFunction(material.blendSrc, material.blendDst);
-                        device.setBlendEquation(material.blendEquation);
+                        if (material.blend) {
+                            if (material.separateAlphaBlend) {
+                                device.setBlendFunctionSeparate(material.blendSrc, material.blendDst, material.blendSrcAlpha, material.blendDstAlpha);
+                                device.setBlendEquationSeparate(material.blendEquation, material.blendAlphaEquation);
+                            } else {
+                                device.setBlendFunction(material.blendSrc, material.blendDst);
+                                device.setBlendEquation(material.blendEquation);
+                            }
+                        }
                         device.setColorWrite(material.redWrite, material.greenWrite, material.blueWrite, material.alphaWrite);
                         device.setCullMode(material.cull);
                         device.setDepthWrite(material.depthWrite);
                         device.setDepthTest(material.depthTest);
+                        device.setAlphaToCoverage(material.alphaToCoverage);
                         stencilFront = material.stencilFront;
                         stencilBack = material.stencilBack;
                         if (stencilFront || stencilBack) {
                             device.setStencilTest(true);
                             if (stencilFront===stencilBack) {
                                 // identical front/back stencil
-                                device.setStencilFunc(stencilFront.func, stencilFront.ref, stencilFront.mask);
-                                device.setStencilOperation(stencilFront.fail, stencilFront.zfail, stencilFront.zpass);
+                                device.setStencilFunc(stencilFront.func, stencilFront.ref, stencilFront.readMask);
+                                device.setStencilOperation(stencilFront.fail, stencilFront.zfail, stencilFront.zpass, stencilFront.writeMask);
                             } else {
                                 // separate
                                 if (stencilFront) {
                                     // set front
-                                    device.setStencilFuncFront(stencilFront.func, stencilFront.ref, stencilFront.mask);
-                                    device.setStencilOperationFront(stencilFront.fail, stencilFront.zfail, stencilFront.zpass);
+                                    device.setStencilFuncFront(stencilFront.func, stencilFront.ref, stencilFront.readMask);
+                                    device.setStencilOperationFront(stencilFront.fail, stencilFront.zfail, stencilFront.zpass, stencilFront.writeMask);
                                 } else {
                                     // default front
                                     device.setStencilFuncFront(pc.FUNC_ALWAYS, 0, 0xFF);
-                                    device.setStencilOperationFront(pc.STENCILOP_KEEP, pc.STENCILOP_KEEP, pc.STENCILOP_KEEP);
+                                    device.setStencilOperationFront(pc.STENCILOP_KEEP, pc.STENCILOP_KEEP, pc.STENCILOP_KEEPP, 0xFF);
                                 }
                                 if (stencilBack) {
                                     // set back
-                                    device.setStencilFuncBack(stencilBack.func, stencilBack.ref, stencilBack.mask);
-                                    device.setStencilOperationBack(stencilBack.fail, stencilBack.zfail, stencilBack.zpass);
+                                    device.setStencilFuncBack(stencilBack.func, stencilBack.ref, stencilBack.readMask);
+                                    device.setStencilOperationBack(stencilBack.fail, stencilBack.zfail, stencilBack.zpass, stencilBack.writeMask);
                                 } else {
                                     // default back
                                     device.setStencilFuncBack(pc.FUNC_ALWAYS, 0, 0xFF);
-                                    device.setStencilOperationBack(pc.STENCILOP_KEEP, pc.STENCILOP_KEEP, pc.STENCILOP_KEEP);
+                                    device.setStencilOperationBack(pc.STENCILOP_KEEP, pc.STENCILOP_KEEP, pc.STENCILOP_KEEP, 0xFF);
                                 }
                             }
                         } else {
@@ -2105,9 +2148,10 @@ pc.extend(pc, function () {
                 }
             }
             device.setStencilTest(false); // don't leak stencil state
+            device.updateEnd();
 
             // #ifdef PROFILER
-            this._forwardTime = pc.now() - forwardStartTime;
+            this._forwardTime += pc.now() - forwardStartTime;
             // #endif
         },
 
@@ -2212,6 +2256,7 @@ pc.extend(pc, function () {
             var triBounds = [];
             var staticLights = [];
             var bit;
+            var lht;
             for(i=0; i<drawCallsCount; i++) {
                 drawCall = drawCalls[i];
                 if (!drawCall.isStatic) {
@@ -2262,7 +2307,7 @@ pc.extend(pc, function () {
                     mesh = drawCall.mesh;
                     vertexBuffer = mesh.vertexBuffer;
                     indexBuffer = mesh.indexBuffer[drawCall.renderStyle];
-                    indices = new Uint16Array(indexBuffer.lock());
+                    indices = indexBuffer.bytesPerIndex===2? new Uint16Array(indexBuffer.lock()) : new Uint32Array(indexBuffer.lock());
                     numTris = mesh.primitive[drawCall.renderStyle].count / 3;
                     baseIndex = mesh.primitive[drawCall.renderStyle].base;
                     elems = vertexBuffer.format.elements;
@@ -2379,7 +2424,7 @@ pc.extend(pc, function () {
                         for(combIbName in combIndices) {
                             combIb = combIndices[combIbName];
                             var ib = new pc.IndexBuffer(device, indexBuffer.format, combIb.length, indexBuffer.usage);
-                            var ib2 = new Uint16Array(ib.lock());
+                            var ib2 = ib.bytesPerIndex===2? new Uint16Array(ib.lock()) : new Uint32Array(ib.lock());
                             ib2.set(combIb);
                             ib.unlock();
 
@@ -2442,7 +2487,10 @@ pc.extend(pc, function () {
                             for(k=0; k<staticLights.length; k++) {
                                 bit = 1 << k;
                                 if (combIbName & bit) {
-                                    instance._staticLightList.push(lights[ staticLights[k] ]);
+                                    lht = lights[ staticLights[k] ];
+                                    if (instance._staticLightList.indexOf(lht) < 0) {
+                                        instance._staticLightList.push(lht);
+                                    }
                                 }
                             }
 
@@ -2500,7 +2548,7 @@ pc.extend(pc, function () {
             var oldGamma = scene._gammaCorrection;
             var oldTonemap = scene._toneMapping;
             var oldExposure = scene.exposure;
-            if (target) {
+            if (target && target.colorBuffer) {
                 var format = target.colorBuffer.format;
                 if (format===pc.PIXELFORMAT_RGB16F || format===pc.PIXELFORMAT_RGB32F) {
                     isHdr = true;

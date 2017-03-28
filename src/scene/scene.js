@@ -65,6 +65,20 @@
         BLEND_SCREEN: 8,
 
         /**
+         * @enum pc.BLEND
+         * @name pc.BLEND_MIN
+         * @description Minimum color. Check app.graphicsDevice.extBlendMinmax for support.
+         */
+        BLEND_MIN: 9,
+
+        /**
+         * @enum pc.BLEND
+         * @name pc.BLEND_MAX
+         * @description Maximum color. Check app.graphicsDevice.extBlendMinmax for support.
+         */
+        BLEND_MAX: 10,
+
+        /**
          * @enum pc.FOG
          * @name pc.FOG_NONE
          * @description No fog is applied to the scene.
@@ -313,7 +327,8 @@ pc.extend(pc, function () {
             lastStaticPrepareSearchTime: 0,
             lastStaticPrepareWriteTime: 0,
             lastStaticPrepareTriAabbTime: 0,
-            lastStaticPrepareCombineTime: 0
+            lastStaticPrepareCombineTime: 0,
+            updateShadersTime: 0
         };
 
         // Models
@@ -526,6 +541,8 @@ pc.extend(pc, function () {
     Scene.prototype.updateShadersFunc = function (device) {
         var i;
 
+        var time = pc.now();
+
         if (this._skyboxCubeMap && !this._skyboxModel) {
             var material = new pc.Material();
             var scene = this;
@@ -586,6 +603,8 @@ pc.extend(pc, function () {
                 mat.shader = null;
             }
         }
+
+        this._stats.updateShadersTime += pc.now() - time;
     };
 
     Scene.prototype.getModels = function () {

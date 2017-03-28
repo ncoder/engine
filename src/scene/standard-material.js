@@ -252,12 +252,13 @@ pc.extend(pc, function () {
             get: function() { return this[privMap]; },
             set: function (value) {
                 var oldVal = this[privMap];
-                if ((!oldVal && value) || (oldVal && !value)) this.dirtyShader = true;
+                if (!!oldVal ^ !!value) this.dirtyShader = true;
                 if (oldVal && value) {
                     if (oldVal.rgbm!==value.rgbm || oldVal.fixCubemapSeams!==value.fixCubemapSeams || oldVal.format!==value.format) {
                         this.dirtyShader = true;
                     }
                 }
+
                 this[privMap] = value;
             }
         });
@@ -265,10 +266,8 @@ pc.extend(pc, function () {
         var mapTiling = privMapTiling.substring(1);
         var mapOffset = privMapOffset.substring(1);
 
-
         Object.defineProperty(StandardMaterial.prototype, mapTiling, {
             get: function() {
-                this.dirtyShader = true;
                 return this[privMapTiling];
             },
             set: function (value) {
@@ -288,7 +287,6 @@ pc.extend(pc, function () {
 
         Object.defineProperty(StandardMaterial.prototype, mapOffset, {
             get: function() {
-                this.dirtyShader = true;
                 return this[privMapOffset];
             },
             set: function (value) {
@@ -309,14 +307,14 @@ pc.extend(pc, function () {
         Object.defineProperty(StandardMaterial.prototype, privMapUv.substring(1), {
             get: function() { return this[privMapUv]; },
             set: function (value) {
-                this.dirtyShader = true;
+                if (this[privMapUv] !== value) this.dirtyShader = true;
                 this[privMapUv] = value;
             }
         });
         Object.defineProperty(StandardMaterial.prototype, privMapChannel.substring(1), {
             get: function() { return this[privMapChannel]; },
             set: function (value) {
-                this.dirtyShader = true;
+                if (this[privMapChannel] !== value) this.dirtyShader = true;
                 this[privMapChannel] = value;
             }
         });
@@ -355,7 +353,7 @@ pc.extend(pc, function () {
                 var oldVal = this[priv];
                 var wasBw = (oldVal.data[0]===0 && oldVal.data[1]===0 && oldVal.data[2]===0) || (oldVal.data[0]===1 && oldVal.data[1]===1 && oldVal.data[2]===1);
                 var isBw = (value.data[0]===0 && value.data[1]===0 && value.data[2]===0) || (value.data[0]===1 && value.data[1]===1 && value.data[2]===1);
-                if (wasBw || isBw) this.dirtyShader = true;
+                if (wasBw ^ isBw) this.dirtyShader = true;
                 this.dirtyColor = true;
                 this[priv] = value;
             }
@@ -391,7 +389,7 @@ pc.extend(pc, function () {
                     var oldVal = this[pmult];
                     var wasBw = oldVal===0 || oldVal===1;
                     var isBw = value===0 || value===1;
-                    if (wasBw || isBw) this.dirtyShader = true;
+                    if (wasBw ^ isBw) this.dirtyShader = true;
                     this.dirtyColor = true;
                     this[pmult] = value;
                 }
@@ -426,7 +424,7 @@ pc.extend(pc, function () {
                 var oldVal = this[priv];
                 var wasBw = oldVal===0 || oldVal===1;
                 var isBw = value===0 || value===1;
-                if (wasBw || isBw) this.dirtyShader = true;
+                if (wasBw ^ isBw) this.dirtyShader = true;
                 this[priv] = value;
             }
         });
@@ -443,7 +441,7 @@ pc.extend(pc, function () {
             get: function() { return this[priv]; },
             set: function (value) {
                 var oldVal = this[priv];
-                if ((!oldVal && value) || (oldVal && !value)) this.dirtyShader = true;
+                if (!!oldVal ^ !!value) this.dirtyShader = true;
                 this[priv] = value;
             }
         });
@@ -472,7 +470,7 @@ pc.extend(pc, function () {
         Object.defineProperty(StandardMaterial.prototype, name, {
             get: function() { return this[priv]; },
             set: function (value) {
-                this.dirtyShader = true;
+                if (this[priv] !== value) this.dirtyShader = true;
                 this[priv] = value;
             }
         });
@@ -638,7 +636,6 @@ pc.extend(pc, function () {
             var mname = p + "Map";
             if (this[mname]) {
                 this._setParameter("texture_" + mname, this[mname]);
-
                 var tname = mname + "Transform";
                 this[tname] = this._updateMapTransform(
                     this[tname],
@@ -917,6 +914,7 @@ pc.extend(pc, function () {
                 emissiveTint:               emissiveTint,
                 opacityTint:                this.opacity!==1 && this.blendType!==pc.BLEND_NONE,
                 alphaTest:                  this.alphaTest > 0,
+                alphaToCoverage:            this.alphaToCoverage,
                 needsNormalFloat:           this.normalizeNormalMap,
 
                 sphereMap:                  !!this.sphereMap,
@@ -968,7 +966,7 @@ pc.extend(pc, function () {
                     options.lightMapChannel = "rgb";
                     options.lightMapUv = 1;
                     options.lightMapTransform = 0;
-                    options.lightMapWithoutAmbient = true;
+                    options.lightMapWithoutAmbient = !this.lightMap;
                     options.useRgbm = true;
                     if ((objDefs & pc.SHADERDEF_DIRLM) !== 0) {
                         options.dirLightMap = true;
@@ -980,7 +978,7 @@ pc.extend(pc, function () {
             }
 
             for (var p in pc._matTex2D) {
-                if (p==="opacity" && this.blendType===pc.BLEND_NONE && this.alphaTest===0.0) continue;
+                if (p==="opacity" && this.blendType===pc.BLEND_NONE && this.alphaTest===0.0 && !this.alphaToCoverage) continue;
                 var cname;
                 var mname = p + "Map";
                 var vname = mname + "VertexColor";
@@ -1022,6 +1020,9 @@ pc.extend(pc, function () {
                 options.lights = [];
             }
 
+            if (options.lights.length===0) {
+                options.noShadow = false;
+            }
 
             var library = device.getProgramLibrary();
             this.shader = library.getProgram('standard', options);

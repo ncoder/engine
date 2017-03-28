@@ -113,7 +113,6 @@ pc.extend(pc, function () {
 
         // World space AABB
         this.aabb = new pc.BoundingBox();
-        this.normalMatrix = new pc.Mat3();
 
         this._boneAabb = null;
         this._aabbVer = -1;
@@ -270,10 +269,12 @@ pc.extend(pc, function () {
 
             this._material = material;
 
-            // Record that the material is referenced by this mesh instance
-            this._material.meshInstances.push(this);
+            if (this._material) {
+                // Record that the material is referenced by this mesh instance
+                this._material.meshInstances.push(this);
 
-            this.updateKey();
+                this.updateKey();
+            }
         }
     });
 
@@ -355,7 +356,9 @@ pc.extend(pc, function () {
 
         updateKey: function () {
             var material = this.material;
-            this._key[pc.SORTKEY_FORWARD] = getKey(this.layer, material.blendType, false, material.id);
+            this._key[pc.SORTKEY_FORWARD] = getKey(this.layer,
+                (material.alphaToCoverage || material.alphaTest) ? pc.BLEND_NORMAL : material.blendType, // render alphatest/atoc after opaque
+                false, material.id);
         },
 
         setParameter : pc.Material.prototype.setParameter,

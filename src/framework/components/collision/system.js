@@ -1,4 +1,15 @@
 pc.extend(pc, function () {
+    var _schema = [
+        'enabled',
+        'type',
+        'halfExtents',
+        'radius',
+        'axis',
+        'height',
+        'asset',
+        'shape',
+        'model'
+    ];
 
     /**
      * @name pc.CollisionComponentSystem
@@ -15,17 +26,7 @@ pc.extend(pc, function () {
         this.ComponentType = pc.CollisionComponent;
         this.DataType = pc.CollisionComponentData;
 
-        this.schema = [
-            'enabled',
-            'type',
-            'halfExtents',
-            'radius',
-            'axis',
-            'height',
-            'asset',
-            'shape',
-            'model'
-        ];
+        this.schema = _schema;
 
         this.implementations = { };
 
@@ -35,6 +36,8 @@ pc.extend(pc, function () {
     };
 
     CollisionComponentSystem = pc.inherits(CollisionComponentSystem, pc.ComponentSystem);
+
+    pc.Component._buildAccessors(pc.CollisionComponent.prototype, _schema);
 
     CollisionComponentSystem.prototype = pc.extend(CollisionComponentSystem.prototype, {
         onLibraryLoaded: function () {
@@ -309,7 +312,7 @@ pc.extend(pc, function () {
         createPhysicalShape: function (entity, data) {
             if (typeof Ammo !== 'undefined') {
                 var he = data.halfExtents;
-                var ammoHe = new Ammo.btVector3(he.x, he.y, he.z);
+                var ammoHe = new Ammo.btVector3(he ? he.x : 0.5, he ? he.y : 0.5, he ? he.z : 0.5);
                 return new Ammo.btBoxShape(ammoHe);
             } else {
                 return undefined;

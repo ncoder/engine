@@ -204,10 +204,6 @@ pc.programlib.standard = {
             chunks = customChunks;
         }
 
-        if (chunks.extensionVS) {
-        	code += chunks.extensionVS + "\n";
-        }
-
         code += chunks.baseVS;
 
         // Allow first shadow coords to be computed in VS
@@ -367,6 +363,20 @@ pc.programlib.standard = {
         varyings += oldVars;
         vshader = varyings + vshader;
 
+        var startCode = "";
+        if (device.webgl2) {
+            startCode = pc.programlib.versionCode(device);
+            if (chunks.extensionVS) {
+                startCode += chunks.extensionVS + "\n";
+            }
+            vshader = startCode + chunks.gles3VS + vshader;
+        } else {
+            if (chunks.extensionVS) {
+                startCode = chunks.extensionVS + "\n";
+            }
+            vshader = startCode + vshader;
+        }
+
         //////////////////////////////
         // GENERATE FRAGMENT SHADER //
         //////////////////////////////
@@ -381,12 +391,22 @@ pc.programlib.standard = {
 
         var fshader;
         code = '';
-        if (device.extStandardDerivatives) {
+
+        if (device.webgl2) {
+            code += pc.programlib.versionCode(device);
+        }
+
+        if (device.extStandardDerivatives && !device.webgl2) {
             code += "#extension GL_OES_standard_derivatives : enable\n\n";
         }
         if (chunks.extensionPS) {
-        	code += chunks.extensionPS + "\n";
+            code += chunks.extensionPS + "\n";
         }
+
+        if (device.webgl2) {
+            code += chunks.gles3PS;
+        }
+
         code += options.forceFragmentPrecision? "precision " + options.forceFragmentPrecision + " float;\n\n" : pc.programlib.precisionCode(device);
 
         if (options.customFragmentShader) {
@@ -499,12 +519,12 @@ pc.programlib.standard = {
         }
 
         code += this._addMap("diffuse", options, chunks, uvOffset);
-        if (options.blendType!==pc.BLEND_NONE || options.alphaTest) {
+        if (options.blendType!==pc.BLEND_NONE || options.alphaTest || options.alphaToCoverage) {
             code += this._addMap("opacity", options, chunks, uvOffset);
         }
         code += this._addMap("emissive", options, chunks, uvOffset, null, options.emissiveFormat);
 
-        if (options.useSpecular) {
+        if (options.useSpecular && (lighting || reflections)) {
             if (options.specularAA && options.normalMap) {
                 if (options.needsNormalFloat && needsNormal) {
                     code += chunks.specularAaToksvigFloatPS;
@@ -618,7 +638,7 @@ pc.programlib.standard = {
         if (lighting) code += chunks.lightDiffuseLambertPS;
         var useOldAmbient = false;
         if (options.useSpecular) {
-            code += options.shadingModel===pc.SPECULAR_PHONG? chunks.lightSpecularPhongPS : chunks.lightSpecularBlinnPS;
+            if (lighting) code += options.shadingModel===pc.SPECULAR_PHONG? chunks.lightSpecularPhongPS : chunks.lightSpecularBlinnPS;
             if (options.sphereMap || cubemapReflection || options.dpAtlas || (options.fresnelModel > 0)) {
                 if (options.fresnelModel > 0) {
                     if (options.conserveEnergy) {
@@ -693,7 +713,7 @@ pc.programlib.standard = {
         code += chunks.startPS;
 
         var opacityParallax = false;
-        if (options.blendType===pc.BLEND_NONE && !options.alphaTest) {
+        if (options.blendType===pc.BLEND_NONE && !options.alphaTest && !options.alphaToCoverage) {
             code += "   dAlpha = 1.0;\n";
         } else {
             if (options.heightMap && options.opacityMap) {
@@ -888,7 +908,7 @@ pc.programlib.standard = {
         }
 
         code += chunks.endPS;
-        if (options.blendType===pc.BLEND_NORMAL || options.blendType===pc.BLEND_ADDITIVEALPHA) {
+        if (options.blendType===pc.BLEND_NORMAL || options.blendType===pc.BLEND_ADDITIVEALPHA || options.alphaToCoverage) {
             code += chunks.outputAlphaPS;
         } else if (options.blendType===pc.BLEND_PREMULTIPLIED) {
             code += chunks.outputAlphaPremulPS;
